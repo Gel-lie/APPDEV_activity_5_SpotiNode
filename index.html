@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spotify Clone</title>
+    <style>
+       body {
+    font-family: 'Poppins', sans-serif;
+    background: linear-gradient(to bottom, #fff, #1db954, #107c41);
+    color: #fff;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background-attachment: fixed;
+}
+.card {
+    background-color: #121212;  /* Dark gray card background */
+    border-radius: 16px;
+    box-shadow: 0px 6px 20px rgba(0, 0, 0, 0.6);
+    padding: 30px;
+    margin-top: 40px auto;
+    padding-top: 50px;
+    max-width: 400px;  /* Smaller, compact width */
+    width: 100%;
+}
+
+h1 {
+    color: #1DB954;  /* Spotify bright green */
+    font-size: 1.8em;
+    text-align: center;
+    margin-bottom: 20px;
+    font-weight: 600;
+}
+
+h2 {
+    color: #fff;
+    font-size: 1.3em;
+    margin-top: 20px;
+    margin-bottom: 10px;
+    font-weight: 500;
+}
+
+form {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;  /* Reduce spacing between elements */
+}
+
+input[type="text"], input[type="file"] {
+    padding: 10px 12px;
+    font-size: 0.9em;
+    border: 1px solid #333;
+    background-color: #2a2a2a;  /* Dark input fields */
+    color: #fff;
+    border-radius: 8px;
+    width: 100%;
+    box-sizing: border-box;
+    transition: border 0.3s ease;
+}
+
+input[type="text"]:focus, input[type="file"]:focus {
+    border-color: #1DB954;  /* Spotify green focus */
+    outline: none;
+    box-shadow: 0 0 4px rgba(29, 185, 84, 0.8);
+}
+
+button {
+    background-color: #1DB954;  /* Spotify bright green */
+    color: white;
+    font-size: 1em;
+    padding: 10px;
+    border: none;
+    border-radius: 50px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+button:hover {
+    background-color: #1aa34a;
+}
+
+#search-input {
+    padding: 10px 12px;
+    font-size: 0.9em;
+    border: 1px solid #333;
+    background-color: #2a2a2a;
+    color: #fff;
+    border-radius: 8px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+#songs-list div {
+    background-color: #181818;
+    padding: 12px;
+    margin: 10px 0;
+    border-radius: 8px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.6);
+}
+
+audio {
+    margin-top: 8px;
+    width: 100%;
+}
+
+    </style>
+</head>
+<body>
+    <div class="card">
+        <br><br>
+        <h1>Spotify</h1>
+        <form id="add-song-form" enctype="multipart/form-data">
+            <input type="text" name="title" placeholder="Song Title" required>
+            <input type="text" name="artist" placeholder="Artist" required>
+            <input type="text" name="album" placeholder="Album" required>
+            <input type="text" name="genre" placeholder="Genre">
+            <input type="file" name="file" required>
+            <button type="submit">Add Song</button>
+        </form>
+
+        <h2>Search Songs</h2>
+        <input type="text" id="search-input" placeholder="Search by title, artist, or album">
+        <button id="search-button">Search</button>
+
+        <h2>Songs List</h2>
+        <div id="songs-list"></div>
+
+        <script>
+            document.getElementById('add-song-form').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const formData = new FormData(e.target);
+                await fetch('/add-song', {
+                    method: 'POST',
+                    body: formData
+                });
+                e.target.reset();
+                loadSongs();
+            });
+
+            document.getElementById('search-button').addEventListener('click', async () => {
+                const query = document.getElementById('search-input').value;
+                const response = await fetch(`/search-songs?query=${encodeURIComponent(query)}`);
+                const songs = await response.json();
+                displaySongs(songs);
+            });
+
+            async function loadSongs() {
+                const response = await fetch('/songs');
+                const songs = await response.json();
+                displaySongs(songs);
+            }
+
+            function displaySongs(songs) {
+                const songsList = document.getElementById('songs-list');
+                songsList.innerHTML = ''; 
+
+                songs.forEach(song => {
+                    const songElement = document.createElement('div');
+                    songElement.innerHTML = `
+                        <p><strong>${song.title}</strong> by ${song.artist} (${song.album})</p>
+                        <audio controls>
+                            <source src="${song.url}" type="audio/mpeg">
+                            Your browser does not support the audio tag.
+                        </audio>
+                    `;
+                    songsList.appendChild(songElement);
+                });
+            }
+
+            window.onload = loadSongs;
+        </script>
+    </div>
+</body>
+</html>
